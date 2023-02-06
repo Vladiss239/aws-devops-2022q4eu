@@ -198,25 +198,6 @@
             }
         },
 
-        "SGbastion" : {
-            "Type" : "AWS::EC2::SecurityGroup",
-            "Properties" : {
-                "GroupDescription" : "allows access to bastion",
-                "VpcId" : {"Ref" : "GhostVPC"},
-                "SecurityGroupIngress" : [
-                    {
-                        "IpProtocol" : "tcp",
-                        "FromPort" : 22,
-                        "ToPort" : 22,
-                        "CidrIp" : { "Ref" : "SourceAccessCIDR" }
-                    }
-                ],
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "bastion" }
-                ]
-            }
-        },
         "SGEC2pool" : {
             "Type" : "AWS::EC2::SecurityGroup",
             "Properties" : {
@@ -227,7 +208,7 @@
                         "IpProtocol" : "tcp",
                         "FromPort" : 22,
                         "ToPort" : 22,
-                        "SourceSecurityGroupId" : { "Ref" : "SGbastion" }
+                        "CidrIp" : { "Ref" : "SourceAccessCIDR" }
                     },
                     {
                         "IpProtocol" : "tcp",
@@ -586,26 +567,6 @@
                 "TargetGroupARNs" : [ {"Fn::GetAtt" : [ "ALBTargetGroup", "TargetGroupArn" ]} ],
                 "VPCZoneIdentifier" : [ { "Ref" : "SubnetA"}, { "Ref" : "SubnetB"}, { "Ref" : "SubnetC"} ]
               }
-          },
-
-          "BastionInstance" : {
-            "Type" : "AWS::EC2::Instance",
-            "DependsOn" : "GhostASG",
-            "Properties" : {
-                "AvailabilityZone" : "us-east-1a",
-                "IamInstanceProfile" : {"Ref" : "EC2InstanceProfile"},
-                "ImageId" : "ami-0b5eea76982371e91",
-                "InstanceType": "t2.micro",
-                "KeyName": "ghost-prod",
-                "NetworkInterfaces": [ {
-                    "AssociatePublicIpAddress": "true",
-                    "DeviceIndex": "0",
-                    "GroupSet": [{ "Ref" : "SGbastion" }],
-                    "SubnetId": { "Ref" : "SubnetA" }
-                  } ],
-                "Tags" : [{"Key" : "Project", "Value" : "ghost" },
-                            {"Key" : "Name", "Value" : "Bastion Instance" }]
-              }
           }
     },
 
@@ -613,10 +574,6 @@
         "LBDNS" : {
             "Description": "The DNSName of the load balancer",  
             "Value" : { "Fn::GetAtt" : [ "GhostALB", "DNSName" ]}
-        },
-        "BastionDNS" : {
-            "Description": "The DNSName of Bastion Instance",  
-            "Value" : { "Fn::GetAtt" : [ "BastionInstance", "PublicDnsName" ]}
         }
     }
 }
