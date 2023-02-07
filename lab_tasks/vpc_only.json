@@ -1,0 +1,574 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+  
+    "Description" : "Creates VPC infra for ghost app.",
+
+    "Parameters" : {
+        "SourceAccessCIDR" : {
+            "Type" : "String",
+            "Description" : "Allowed source IPs x.x.x.x/x",
+            "Default" : "0.0.0.0/0"
+        },
+        "DBPassword" : {
+            "Type" : "String",
+            "Description" : "Database password",
+            "Default" : "MyDBPassword123"
+        }
+    },
+
+    "Resources" : {
+        "GhostVPC" : {
+            "Type" : "AWS::EC2::VPC",
+            "Properties" : {
+                "CidrBlock" : "10.10.0.0/16",
+                "EnableDnsHostnames" : "true",
+                "EnableDnsSupport" : "true",
+                "InstanceTenancy" : "default",
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "cloudx" }
+                ]
+            }
+        },
+        "SubnetA" : {
+              "Type" : "AWS::EC2::Subnet",
+              "Properties" : {
+                "AvailabilityZone" : "us-east-1a",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.1.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "public_a" }
+                ]
+            }
+        },
+        "SubnetB" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+              "AvailabilityZone" : "us-east-1b",
+              "VpcId" : { "Ref" : "GhostVPC" },
+              "CidrBlock" : "10.10.2.0/24",
+              "MapPublicIpOnLaunch" : "true",
+              "Tags" : [
+                  {"Key" : "Project", "Value" : "ghost" },
+                  {"Key" : "Name", "Value" : "public_b" }
+                ]
+            }
+        },
+        "SubnetC" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1c",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.3.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "public_c" }
+                ]
+            }
+        },
+        "DBSubnetA" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1a",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.20.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "private_db_a" }
+                ]
+            }
+        },
+        "DBSubnetB" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1b",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.21.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "private_db_b" }
+                ]
+            }
+        },
+        "DBSubnetC" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1c",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.22.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "private_db_c" }
+                ]
+            }
+        },        
+        "DBSubnetGroup" : {
+            "Type" : "AWS::RDS::DBSubnetGroup",
+            "Properties" : {
+                "DBSubnetGroupDescription" : "ghost database subnet group",
+                "DBSubnetGroupName" : "ghost",
+                "SubnetIds" : [ {"Ref" : "DBSubnetA"}, {"Ref" : "DBSubnetB"}, {"Ref" : "DBSubnetC"} ],
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "DBSubnetGroup" }
+                ]
+            }
+        },
+
+        "ECSSubnetA" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1a",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.10.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "private_a" }
+                ]
+            }
+        },
+        "ECSSubnetB" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1b",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.11.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "private_b" }
+                ]
+            }
+        },
+        "ECSSubnetC" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1c",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.12.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "private_c" }
+                ]
+            }
+        },
+        
+        "GhostIGW" : {
+          "Type": "AWS::EC2::InternetGateway",
+          "Properties" : {
+            "Tags" : [
+                {"Key" : "Project", "Value" : "ghost" },
+                {"Key" : "Name", "Value" : "Ghost_IGW" }
+            ]
+          }
+        },
+        "AttachGateway" : {
+          "Type" : "AWS::EC2::VPCGatewayAttachment",
+          "Properties" : {
+            "VpcId" : { "Ref" : "GhostVPC" },
+            "InternetGatewayId" : { "Ref": "GhostIGW" }
+          }
+        },
+        
+        "GhostRT" : {
+          "Type" : "AWS::EC2::RouteTable",
+          "Properties" : {
+            "VpcId" : { "Ref" : "GhostVPC" },
+            "Tags" : [
+                {"Key" : "Project", "Value" : "ghost" },
+                {"Key" : "Name", "Value" : "Ghost_RT" }
+            ]
+          }
+        },
+        "DefaultRoute" : {
+            "Type" : "AWS::EC2::Route",
+            "DependsOn" : "GhostIGW",
+            "Properties" : {
+                "RouteTableId" : { "Ref" : "GhostRT" },
+                "DestinationCidrBlock" : "0.0.0.0/0",
+                "GatewayId" : { "Ref" : "GhostIGW" }
+            }
+        },
+        "PrivateRT" : {
+            "Type" : "AWS::EC2::RouteTable",
+            "Properties" : {
+              "VpcId" : { "Ref" : "GhostVPC" },
+              "Tags" : [
+                  {"Key" : "Project", "Value" : "ghost" },
+                  {"Key" : "Name", "Value" : "private_rt" }
+              ]
+            }
+          },         
+        "RouteTableAssociationA" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "SubnetA" },
+                "RouteTableId" : { "Ref" : "GhostRT" }
+            }
+        },
+        "RouteTableAssociationB" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "SubnetB" },
+                "RouteTableId" : { "Ref" : "GhostRT" }
+            }
+        },
+        "RouteTableAssociationC" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "SubnetC" },
+                "RouteTableId" : { "Ref" : "GhostRT" }
+            }
+        },
+        "PrivateRouteTableAssociationA" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "DBSubnetA" },
+                "RouteTableId" : { "Ref" : "PrivateRT" }
+            }
+        },
+        "PrivateRouteTableAssociationB" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "DBSubnetB" },
+                "RouteTableId" : { "Ref" : "PrivateRT" }
+            }
+        },
+        "PrivateRouteTableAssociationC" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "DBSubnetC" },
+                "RouteTableId" : { "Ref" : "PrivateRT" }
+            }
+        },
+        "ECSRouteTableAssociationA" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "ECSSubnetA" },
+                "RouteTableId" : { "Ref" : "PrivateRT" }
+            }
+        },
+        "ECSRouteTableAssociationB" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "ECSSubnetB" },
+                "RouteTableId" : { "Ref" : "PrivateRT" }
+            }
+        },
+        "ECSRouteTableAssociationC" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "ECSSubnetC" },
+                "RouteTableId" : { "Ref" : "PrivateRT" }
+            }
+        },
+
+        "SGbastion" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "allows access to bastion",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "SecurityGroupIngress" : [
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 22,
+                        "ToPort" : 22,
+                        "CidrIp" : { "Ref" : "SourceAccessCIDR" }
+                    }
+                ],
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "bastion" }
+                ]
+            }
+        },
+        "SGEC2pool" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "allows access to ec2 instances",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "SecurityGroupIngress" : [
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 22,
+                        "ToPort" : 22,
+                        "SourceSecurityGroupId" : { "Ref" : "SGbastion" }
+                    },
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 2049,
+                        "ToPort" : 2049,
+                        "CidrIp" : "10.10.0.0/16"
+                    },
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 2368,
+                        "ToPort" : 2368,
+                        "SourceSecurityGroupId" : { "Ref" : "SGalb" }
+                    }
+                ],
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "ec2_pool" }
+                ]
+            }
+        },
+        
+        "SGalb" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "allows access to alb",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "SecurityGroupIngress" : [
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 80,
+                        "ToPort" : 80,
+                        "CidrIp" : { "Ref" : "SourceAccessCIDR" }
+                    }
+                ],
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "alb" }
+                ]
+            }
+        },
+
+        "IngressEFSec2" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "Description" : "allow EFS connection from ec2",
+                "IpProtocol" : "tcp",
+                "FromPort" : 2049,
+                "ToPort" : 2049,
+                "SourceSecurityGroupId" : { "Ref" : "SGEC2pool" },
+                "GroupId" : {"Ref" : "SGefs"}
+              }
+        },
+        "IngressEFSfarGate" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "Description" : "allow EFS connection from fargate",
+                "IpProtocol" : "tcp",
+                "FromPort" : 2049,
+                "ToPort" : 2049,
+                "SourceSecurityGroupId" : { "Ref" : "SGFGpool" },
+                "GroupId" : {"Ref" : "SGefs"}
+              }
+        },
+        "SGefs" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "defines access to efs mount points",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "SecurityGroupEgress" : [
+                    {
+                        "IpProtocol" : "-1",
+                        "CidrIp" : "10.10.0.0/16"
+                    }
+                ],
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "efs" }
+                ]
+            }
+        },
+        
+        "IngressDBec2" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "Description" : "allow DB connection from ec2",
+                "IpProtocol" : "tcp",
+                "FromPort" : 3306,
+                "ToPort" : 3306,
+                "SourceSecurityGroupId" : { "Ref" : "SGEC2pool" },
+                "GroupId" : {"Ref" : "SGdatabase"}
+              }
+        },
+        "IngressDBfarGate" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "Description" : "allow DB connection from fargate",
+                "IpProtocol" : "tcp",
+                "FromPort" : 3306,
+                "ToPort" : 3306,
+                "SourceSecurityGroupId" : { "Ref" : "SGFGpool" },
+                "GroupId" : {"Ref" : "SGdatabase"}
+              }
+        },
+        "SGdatabase" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "defines access to ghost db",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "mysql" }
+                ]
+            }
+        },
+
+        "IngressFargateEFS" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "Description" : "allow NFS",
+                "IpProtocol" : "tcp",
+                "FromPort" : 2049,
+                "ToPort" : 2049,
+                "SourceSecurityGroupId" : { "Ref" : "SGefs" },
+                "GroupId" : {"Ref" : "SGFGpool"}
+              }
+        },
+        "IngressFargateHTTP" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "Description" : "allow Ghost port",
+                "IpProtocol" : "tcp",
+                "FromPort" : 2368,
+                "ToPort" : 2368,
+                "SourceSecurityGroupId" : { "Ref" : "SGalb" },
+                "GroupId" : {"Ref" : "SGFGpool"}
+              }
+        },
+        "SGFGpool" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "Allows access for Fargate instances",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "fargate_pool" }
+                ]
+            }
+        },
+        
+      
+        "IAMrole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version" : "2012-10-17",
+                    "Statement": [ {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": [ "ec2.amazonaws.com" ]
+                        },
+                        "Action": [ "sts:AssumeRole" ]
+                        } ]
+                },
+                "RoleName" : "Ghost_Role",
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "ghost-role" }
+                    ]  
+            }
+        },
+        "RolePolicy": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "ghost_policy",
+                "PolicyDocument": {
+                    "Version" : "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:Describe*",
+                                "elasticfilesystem:DescribeFileSystems",
+                                "elasticfilesystem:ClientMount",
+                                "elasticfilesystem:ClientWrite",
+                                "rds:DescribeDBInstances",
+                                "ssm:GetParameter*",
+                                "secretsmanager:GetSecretValue",
+                                "kms:Decrypt"
+                            ],
+                            "Resource": "*"
+                        }
+                    ]
+                },
+                "Roles": [ {
+                "Ref": "IAMrole"
+                } ]
+            } 
+        },
+        "EC2InstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Roles": [ {
+                "Ref": "IAMrole"
+                } ]
+            }
+        },
+
+        "IAMroleECS": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version" : "2012-10-17",
+                    "Statement": [ {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": [ "ecs-tasks.amazonaws.com" ]
+                        },
+                        "Action": [ "sts:AssumeRole" ]
+                        } ]
+                },
+                "RoleName" : "ghost_ecs",
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "ghost_ecs_role" }
+                    ]  
+            }
+        },
+        "RolePolicyECS": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "ghost_ecs_policy",
+                "PolicyDocument": {
+                    "Version" : "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ecr:GetAuthorizationToken",
+                                "ecr:BatchCheckLayerAvailability",
+                                "ecr:GetDownloadUrlForLayer",
+                                "ecr:BatchGetImage",
+                                "elasticfilesystem:DescribeFileSystems",
+                                "elasticfilesystem:ClientMount",
+                                "elasticfilesystem:ClientWrite",
+                                "logs:*"
+                            ],
+                            "Resource": "*"
+                        }
+                    ]
+                },
+                "Roles": [ {
+                "Ref": "IAMroleECS"
+                } ]
+            } 
+        },
+        "ECSInstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Roles": [ {
+                "Ref": "IAMroleECS"
+                } ]
+            }
+        }
+  
+    },
+
+    "Outputs" : {
+
+    }
+}
+  
