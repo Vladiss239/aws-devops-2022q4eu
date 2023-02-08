@@ -802,11 +802,11 @@
 
     "Outputs" : {
         "LBDNS" : {
-            "Description": "The DNSName of the load balancer",  
+            "Description": "DNS Name of the load balancer",  
             "Value" : { "Fn::GetAtt" : [ "GhostALB", "DNSName" ]}
         },
         "BastionDNS" : {
-            "Description": "The DNSName of Bastion Instance",  
+            "Description": "DNS Name of Bastion Instance",  
             "Value" : { "Fn::GetAtt" : [ "BastionInstance", "PublicDnsName" ]}
         }
     }
