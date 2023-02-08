@@ -917,6 +917,21 @@
         "BastionDNS" : {
             "Description": "DNS Name of Bastion Instance",  
             "Value" : { "Fn::GetAtt" : [ "BastionInstance", "PublicDnsName" ]}
+        },
+        "ECSrolearn": {
+            "Description": "IAM exec role for ECS",  
+            "Value" : { "Fn::GetAtt" : [ "IAMroleECS", "Arn" ]},
+            "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-ECSIAMarn" }}
+        },
+        "DBDNS": {
+            "Description": "DB DNS Name",  
+            "Value" : { "Fn::GetAtt" : [ "GhostDB", "DNSName" ]},
+            "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-DBDNS" }}
+        },
+        "EFSID": {
+            "Description": "EFS Id",  
+            "Value" : { "Fn::GetAtt" : [ "GhostEFS", "FileSystemId" ]},
+            "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-EFSID" }}
         }
     }
 }

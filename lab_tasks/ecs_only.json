@@ -1,0 +1,120 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+  
+    "Description" : "Creates ECS infra for ghost app.",
+
+    "Parameters" : {
+        "SourceAccessCIDR" : {
+            "Type" : "String",
+            "Description" : "Allowed source IPs x.x.x.x/x",
+            "Default" : "0.0.0.0/0"
+        },
+        
+        "DBPassword" : {
+            "Type" : "String",
+            "Description" : "Database password",
+            "Default" : "MyDBPassword123"
+        },
+
+        "ClassicStack" : {
+            "Type" : "String",
+            "Description" : "Name of ec2 stack",
+            "Default" : "Everything-till-ECR"
+        }
+    },
+
+    "Resources" : {
+        "GhostCluster" :{
+            "Type" : "AWS::ECS::Cluster",
+            "Properties" : {
+                "CapacityProviders" : [ "FARGATE" ],
+                "ClusterName" : "ghost",
+                "ClusterSettings" :  [{
+                    "Name" : "containerInsights",
+                    "Value" : "enabled"               
+                }],
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "Ghost ECS" }]
+              }
+        },
+        "GhostTaskDef" : {
+            "Type" : "AWS::ECS::TaskDefinition",
+            "Properties" : {
+                "ContainerDefinitions" : [ {
+                    "Name": "ghost_container",
+                    "Image": "481787744868.dkr.ecr.us-east-1.amazonaws.com/ghost:5.33",
+                    "Cpu": 0,
+                    "PortMappings": [
+                        {
+                            "Name": "ghost_container-2368-tcp",
+                            "ContainerPort": 2368,
+                            "HostPort": 2368,
+                            "Protocol": "tcp"
+                        }
+                    ],
+                    "Essential": true,
+                    "Environment": [
+                        {
+                            "Name": "database__connection__database",
+                            "Value": "ghost"
+                        },
+                        {
+                            "Name": "database__connection__host",
+                            "Value": "ghostdbinstance.cqipfvzjj0zs.us-east-1.rds.amazonaws.com"
+                        },
+                        {
+                            "Name": "database__connection__password",
+                            "Value": "MyDBPassword123"
+                        },
+                        {
+                            "Name": "database__client",
+                            "Value": "mysql"
+                        },
+                        {
+                            "Name": "database__connection__user",
+                            "Value": "ghost"
+                        }
+                    ],
+                    "MountPoints": [
+                        {
+                            "SourceVolume": "ghost_volume",
+                            "ContainerPath": "/var/lib/ghost/content"
+                        }
+                    ],
+                    "LogConfiguration": {
+                        "LogDriver": "awslogs",
+                        "Options": {
+                            "awslogs-create-group": "true",
+                            "awslogs-group": "ghost-container",
+                            "awslogs-region": "us-east-1",
+                            "awslogs-stream-prefix": "ghost"
+                        }
+                    }
+                } ],
+                "Cpu" : "256",
+                "ExecutionRoleArn" : "arn:aws:iam::481787744868:role/ghost_ecs",
+                "Family" : "task_def_ghost",
+                "Memory" : "1024",
+                "NetworkMode" : "awsvpc",
+                "RequiresCompatibilities" : [ "FARGATE" ],
+                "TaskRoleArn" : "arn:aws:iam::481787744868:role/ghost_ecs",
+                "Volumes" : [{
+                    "EFSVolumeConfiguration" : {
+                        "FilesystemId" : "fs-04b464d2652935b6f"
+                    },
+                    "Name" : "ghost_volume"
+                  }]
+                  
+              }
+        }
+           
+    },
+
+
+    "Outputs" : {
+
+        }
+    
+}
+  
