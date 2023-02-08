@@ -107,7 +107,20 @@
                     {"Key" : "Name", "Value" : "private_db_c" }
                 ]
             }
+        },        
+        "DBSubnetGroup" : {
+            "Type" : "AWS::RDS::DBSubnetGroup",
+            "Properties" : {
+                "DBSubnetGroupDescription" : "ghost database subnet group",
+                "DBSubnetGroupName" : "ghost",
+                "SubnetIds" : [ {"Ref" : "DBSubnetA"}, {"Ref" : "DBSubnetB"}, {"Ref" : "DBSubnetC"} ],
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "DBSubnetGroup" }
+                ]
+            }
         },
+
         "ECSSubnetA" : {
             "Type": "AWS::EC2::Subnet",
             "Properties" : {
@@ -308,6 +321,7 @@
                 ]
             }
         },
+
         "SGalb" : {
             "Type" : "AWS::EC2::SecurityGroup",
             "Properties" : {
@@ -327,25 +341,34 @@
                 ]
             }
         },
+
+        "IngressEFSec2" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "Description" : "allow EFS connection from ec2",
+                "IpProtocol" : "tcp",
+                "FromPort" : 2049,
+                "ToPort" : 2049,
+                "SourceSecurityGroupId" : { "Ref" : "SGEC2pool" },
+                "GroupId" : {"Ref" : "SGefs"}
+              }
+        },
+        "IngressEFSfarGate" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "Description" : "allow EFS connection from fargate",
+                "IpProtocol" : "tcp",
+                "FromPort" : 2049,
+                "ToPort" : 2049,
+                "SourceSecurityGroupId" : { "Ref" : "SGFGpool" },
+                "GroupId" : {"Ref" : "SGefs"}
+              }
+        },
         "SGefs" : {
             "Type" : "AWS::EC2::SecurityGroup",
             "Properties" : {
                 "GroupDescription" : "defines access to efs mount points",
                 "VpcId" : {"Ref" : "GhostVPC"},
-                "SecurityGroupIngress" : [
-                    {
-                        "IpProtocol" : "tcp",
-                        "FromPort" : 2049,
-                        "ToPort" : 2049,
-                        "SourceSecurityGroupId" : { "Ref" : "SGEC2pool" }
-                    },
-                    {
-                        "IpProtocol" : "tcp",
-                        "FromPort" : 2049,
-                        "ToPort" : 2049,
-                        "SourceSecurityGroupId" : { "Ref" : "SGFGpool" }
-                    }
-                ],
                 "SecurityGroupEgress" : [
                     {
                         "IpProtocol" : "-1",
@@ -358,31 +381,41 @@
                 ]
             }
         },
+        
+        "IngressDBec2" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "Description" : "allow DB connection from ec2",
+                "IpProtocol" : "tcp",
+                "FromPort" : 3306,
+                "ToPort" : 3306,
+                "SourceSecurityGroupId" : { "Ref" : "SGEC2pool" },
+                "GroupId" : {"Ref" : "SGdatabase"}
+              }
+        },
+        "IngressDBfarGate" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "Description" : "allow DB connection from fargate",
+                "IpProtocol" : "tcp",
+                "FromPort" : 3306,
+                "ToPort" : 3306,
+                "SourceSecurityGroupId" : { "Ref" : "SGFGpool" },
+                "GroupId" : {"Ref" : "SGdatabase"}
+              }
+        },
         "SGdatabase" : {
             "Type" : "AWS::EC2::SecurityGroup",
             "Properties" : {
                 "GroupDescription" : "defines access to ghost db",
                 "VpcId" : {"Ref" : "GhostVPC"},
-                "SecurityGroupIngress" : [
-                    {
-                        "IpProtocol" : "tcp",
-                        "FromPort" : 3306,
-                        "ToPort" : 3306,
-                        "SourceSecurityGroupId" : { "Ref" : "SGEC2pool" }
-                    },
-                    {
-                        "IpProtocol" : "tcp",
-                        "FromPort" : 3306,
-                        "ToPort" : 3306,
-                        "SourceSecurityGroupId" : { "Ref" : "SGFGpool" }
-                    }
-                ],
                 "Tags" : [
                     {"Key" : "Project", "Value" : "ghost" },
                     {"Key" : "Name", "Value" : "mysql" }
                 ]
             }
         },
+
         "IngressFargateEFS" : {
             "Type" : "AWS::EC2::SecurityGroupIngress",
             "Properties" : {
@@ -413,18 +446,6 @@
                 "Tags" : [
                     {"Key" : "Project", "Value" : "ghost" },
                     {"Key" : "Name", "Value" : "fargate_pool" }
-                ]
-            }
-        },
-        "DBSubnetGroup" : {
-            "Type" : "AWS::RDS::DBSubnetGroup",
-            "Properties" : {
-                "DBSubnetGroupDescription" : "ghost database subnet group",
-                "DBSubnetGroupName" : "ghost",
-                "SubnetIds" : [ {"Ref" : "DBSubnetA"}, {"Ref" : "DBSubnetB"}, {"Ref" : "DBSubnetC"} ],
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "DBSubnetGroup" }
                 ]
             }
         },

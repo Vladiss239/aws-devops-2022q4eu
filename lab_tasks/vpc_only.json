@@ -321,7 +321,7 @@
                 ]
             }
         },
-        
+
         "SGalb" : {
             "Type" : "AWS::EC2::SecurityGroup",
             "Properties" : {
@@ -449,7 +449,6 @@
                 ]
             }
         },
-        
       
         "IAMrole": {
             "Type": "AWS::IAM::Role",
