@@ -416,6 +416,29 @@
                 ]
             }
         },
+        "SGEndpoints" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "SG for VPC endpoints",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "SecurityGroupIngress" : [
+                    {
+                        "IpProtocol" : "-1",
+                        "CidrIp" : "10.10.0.0/16"
+                    }
+                ],
+                "SecurityGroupEgress" : [
+                    {
+                        "IpProtocol" : "-1",
+                        "CidrIp" : "10.10.0.0/16"
+                    }
+                ],
+                "Tags" : [
+                    {"Key" : "Project", "Value" : "ghost" },
+                    {"Key" : "Name", "Value" : "endpoints_sg" }
+                ]
+            }
+        },
         "DBSubnetGroup" : {
             "Type" : "AWS::RDS::DBSubnetGroup",
             "Properties" : {
@@ -427,6 +450,92 @@
                     {"Key" : "Name", "Value" : "DBSubnetGroup" }
                 ]
             }
+        },
+        "EndPointSSM" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.ssm",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+              }
+        },
+        "EndPointSSMmessages" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.ssmmessages",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+              }
+        },
+        "EndPointECRAPI" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.ecr.api",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+                }
+        },
+        "EndPointECRDKR" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.ecr.dkr",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+                }
+        },
+        "EndPointEFS" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.elasticfilesystem",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+                }
+        },
+        "EndPointCloudWatch" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.monitoring",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+                }
+        },
+        "EndPointCloudWatchLogs" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.logs",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+                }
+        },
+        "EndPointS3" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "ServiceName" : "com.amazonaws.us-east-1.s3",
+                "RouteTableIds" : [ {"Ref" : "PrivateRT"} ],
+                "VpcEndpointType" : "Gateway",
+                "VpcId" : {"Ref" : "GhostVPC"}
+                }
         },
       
         "IAMrole": {
