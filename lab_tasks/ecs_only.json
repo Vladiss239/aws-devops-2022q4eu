@@ -19,7 +19,12 @@
         "ClassicStack" : {
             "Type" : "String",
             "Description" : "Name of ec2 stack",
-            "Default" : "Everything-till-ECR"
+            "Default" : "Lab4"
+        },
+        "AccountID" : {
+            "Type" : "String",
+            "Description" : "Account ID",
+            "Default" : "481787744868"
         }
     },
 
@@ -42,8 +47,8 @@
             "Type" : "AWS::ECS::TaskDefinition",
             "Properties" : {
                 "ContainerDefinitions" : [ {
-                    "Name": "ghost_container",
-                    "Image": "481787744868.dkr.ecr.us-east-1.amazonaws.com/ghost:5.33",
+                    "Name": "task_def_ghost",
+                    "Image": {"Fn::Join": ["", [{"Ref" : "AccountID"}, ".dkr.ecr.us-east-1.amazonaws.com/ghost:5.33"]]},
                     "Cpu": 0,
                     "PortMappings": [
                         {
@@ -61,11 +66,11 @@
                         },
                         {
                             "Name": "database__connection__host",
-                            "Value": "ghostdbinstance.cqipfvzjj0zs.us-east-1.rds.amazonaws.com"
+                            "Value": {"Fn::ImportValue" : {"Fn::Sub" : "${ClassicStack}-DBDNS"}}
                         },
                         {
                             "Name": "database__connection__password",
-                            "Value": "MyDBPassword123"
+                            "Value": {"Ref" : "DBPassword"}
                         },
                         {
                             "Name": "database__client",
@@ -93,21 +98,45 @@
                     }
                 } ],
                 "Cpu" : "256",
-                "ExecutionRoleArn" : "arn:aws:iam::481787744868:role/ghost_ecs",
+                "ExecutionRoleArn" : {"Fn::ImportValue" : {"Fn::Sub" : "${ClassicStack}-ECSIAMarn"}},
                 "Family" : "task_def_ghost",
                 "Memory" : "1024",
                 "NetworkMode" : "awsvpc",
                 "RequiresCompatibilities" : [ "FARGATE" ],
-                "TaskRoleArn" : "arn:aws:iam::481787744868:role/ghost_ecs",
+                "TaskRoleArn" : {"Fn::ImportValue" : {"Fn::Sub" : "${ClassicStack}-ECSIAMarn"}},
                 "Volumes" : [{
                     "EFSVolumeConfiguration" : {
-                        "FilesystemId" : "fs-04b464d2652935b6f"
+                        "FilesystemId" : {"Fn::ImportValue" : {"Fn::Sub" : "${ClassicStack}-EFSID"}}
                     },
                     "Name" : "ghost_volume"
                   }]
                   
               }
-        }
+        },
+        "GhostService" : {
+            "Type" : "AWS::ECS::Service",
+            "Properties" : {
+                "Cluster" : {"Ref" : "GhostCluster"},
+                "DesiredCount" : 1,
+                "HealthCheckGracePeriodSeconds" : 30,
+                "LaunchType" : "FARGATE",
+                "LoadBalancers" : [ {
+                    "ContainerName" : "task_def_ghost",
+                    "ContainerPort" : 2368,
+                    "TargetGroupArn" : "arn:aws:elasticloadbalancing:us-east-1:481787744868:targetgroup/ghost-fargate/87fb13236a3699f0"
+                  } ],
+                "NetworkConfiguration" : {
+                    "AwsvpcConfiguration" : {
+                        "AssignPublicIp" : "DISABLED",
+                        "SecurityGroups" : [ "sg-0c3e85ad55c29bb57" ],
+                        "Subnets" : [ "subnet-00fe6bbb797e6417c", "subnet-0e4385423a59443fd", "subnet-0c1c4dfe7d8bde18a" ]
+                      }                      
+                  },
+                "ServiceName" : "ghost",
+                "TaskDefinition" : {"Ref": "GhostTaskDef"}
+              }
+          }
+          
            
     },
 

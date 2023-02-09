@@ -844,9 +844,9 @@
                                 "mkdir -p /home/ghost_user/ghost/content\n",
                                 "mount -t efs -o tls $EFS_ID:/ /home/ghost_user/ghost/content\n",
                                 "chown -R ghost_user:ghost_user ghost/\n",
-                                "chmod -R 777 ghost/\n",
                                 "IS_CONTENT_EMPTY=$(ls -A /home/ghost_user/ghost/content)\n",
                                 "if [[ -z $IS_CONTENT_EMPTY ]]; then echo 'Empty EFS. Copying content...';sudo -u ghost_user cp -R ./content/* /home/ghost_user/ghost/content;else echo 'EFS OK. Skipping'; fi\n",
+                                "chmod -R ga+w ghost/\n",
                                 "cat << EOF > config.development.json\n",
                                 "{\n \"url\": \"http://${LB_DNS_NAME}\",\n \"server\": {\n \"port\": 2368,\n \"host\": \"0.0.0.0\"\n },\n \"database\": {\n \"client\": \"mysql\",\n \"connection\": {\n \"host\": \"${DB_URL}\",\n \"port\": 3306,\n \"user\": \"${DB_USER}\",\n \"password\": \"${DB_PASSWORD}\",\n \"database\": \"${DB_NAME}\" \n }},\n \"mail\": {\n \"transport\": \"Direct\"\n },\n \"logging\": {\n \"transports\": [\n \"file\",\n \"stdout\"\n ]\n },\n \"process\": \"local\",\n \"paths\": {\n \"contentPath\": \"/home/ghost_user/ghost/content\"\n }\n}\n",
                                 "EOF\n",                               
@@ -899,7 +899,6 @@
 
           "GhostECR" : {
             "Type" : "AWS::ECR::Repository",
-            "DependsOn" : "GhostASG",
             "Properties" : {
                 "ImageTagMutability" : "MUTABLE",
                 "RepositoryName" : "ghost",
@@ -925,7 +924,7 @@
         },
         "DBDNS": {
             "Description": "DB DNS Name",  
-            "Value" : { "Fn::GetAtt" : [ "GhostDB", "DNSName" ]},
+            "Value" : { "Fn::GetAtt" : [ "GhostDB", "Endpoint.Address" ]},
             "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-DBDNS" }}
         },
         "EFSID": {
