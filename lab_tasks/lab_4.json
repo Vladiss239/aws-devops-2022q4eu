@@ -4,6 +4,11 @@
     "Description" : "Creates infra for ghost app.",
 
     "Parameters" : {
+        "AccountID" : {
+            "Type" : "String",
+            "Description" : "Account ID",
+            "Default" : "481787744868"
+        },
         "SourceAccessCIDR" : {
             "Type" : "String",
             "Description" : "Allowed source IPs x.x.x.x/x",
@@ -13,6 +18,11 @@
             "Type" : "String",
             "Description" : "Database password",
             "Default" : "MyDBPassword123"
+        },
+        "ECRname" : {
+            "Type" : "String",
+            "Description" : "ECR name",
+            "Default" : "ghost"
         }
     },
 
@@ -24,10 +34,7 @@
                 "EnableDnsHostnames" : "true",
                 "EnableDnsSupport" : "true",
                 "InstanceTenancy" : "default",
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "cloudx" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "cloudx" }]
             }
         },
         "SubnetA" : {
@@ -37,10 +44,7 @@
                 "VpcId" : { "Ref": "GhostVPC" },
                 "CidrBlock" : "10.10.1.0/24",
                 "MapPublicIpOnLaunch" : "true",
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "public_a" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "public_a" }]
             }
         },
         "SubnetB" : {
@@ -50,10 +54,7 @@
               "VpcId" : { "Ref" : "GhostVPC" },
               "CidrBlock" : "10.10.2.0/24",
               "MapPublicIpOnLaunch" : "true",
-              "Tags" : [
-                  {"Key" : "Project", "Value" : "ghost" },
-                  {"Key" : "Name", "Value" : "public_b" }
-                ]
+              "Tags" : [{"Key" : "Name", "Value" : "public_b" }]
             }
         },
         "SubnetC" : {
@@ -63,10 +64,7 @@
                 "VpcId" : { "Ref": "GhostVPC" },
                 "CidrBlock" : "10.10.3.0/24",
                 "MapPublicIpOnLaunch" : "true",
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "public_c" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "public_c" }]
             }
         },
         "DBSubnetA" : {
@@ -76,10 +74,7 @@
                 "VpcId" : { "Ref": "GhostVPC" },
                 "CidrBlock" : "10.10.20.0/24",
                 "MapPublicIpOnLaunch" : "true",
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "private_db_a" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "private_db_a" }]
             }
         },
         "DBSubnetB" : {
@@ -89,10 +84,7 @@
                 "VpcId" : { "Ref": "GhostVPC" },
                 "CidrBlock" : "10.10.21.0/24",
                 "MapPublicIpOnLaunch" : "true",
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "private_db_b" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "private_db_b" }]
             }
         },
         "DBSubnetC" : {
@@ -102,10 +94,7 @@
                 "VpcId" : { "Ref": "GhostVPC" },
                 "CidrBlock" : "10.10.22.0/24",
                 "MapPublicIpOnLaunch" : "true",
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "private_db_c" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "private_db_c" }]
             }
         },
         "ECSSubnetA" : {
@@ -115,10 +104,7 @@
                 "VpcId" : { "Ref": "GhostVPC" },
                 "CidrBlock" : "10.10.10.0/24",
                 "MapPublicIpOnLaunch" : "true",
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "private_a" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "private_a" }]
             }
         },
         "ECSSubnetB" : {
@@ -128,10 +114,7 @@
                 "VpcId" : { "Ref": "GhostVPC" },
                 "CidrBlock" : "10.10.11.0/24",
                 "MapPublicIpOnLaunch" : "true",
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "private_b" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "private_b" }]
             }
         },
         "ECSSubnetC" : {
@@ -141,20 +124,14 @@
                 "VpcId" : { "Ref": "GhostVPC" },
                 "CidrBlock" : "10.10.12.0/24",
                 "MapPublicIpOnLaunch" : "true",
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "private_c" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "private_c" }]
             }
         },
         
         "GhostIGW" : {
           "Type": "AWS::EC2::InternetGateway",
           "Properties" : {
-            "Tags" : [
-                {"Key" : "Project", "Value" : "ghost" },
-                {"Key" : "Name", "Value" : "Ghost_IGW" }
-            ]
+            "Tags" : [{"Key" : "Name", "Value" : "Ghost_IGW" }]
           }
         },
         "AttachGateway" : {
@@ -169,10 +146,7 @@
           "Type" : "AWS::EC2::RouteTable",
           "Properties" : {
             "VpcId" : { "Ref" : "GhostVPC" },
-            "Tags" : [
-                {"Key" : "Project", "Value" : "ghost" },
-                {"Key" : "Name", "Value" : "Ghost_RT" }
-            ]
+            "Tags" : [{"Key" : "Name", "Value" : "Ghost_RT" }]
           }
         },
         "DefaultRoute" : {
@@ -188,10 +162,7 @@
             "Type" : "AWS::EC2::RouteTable",
             "Properties" : {
               "VpcId" : { "Ref" : "GhostVPC" },
-              "Tags" : [
-                  {"Key" : "Project", "Value" : "ghost" },
-                  {"Key" : "Name", "Value" : "private_rt" }
-              ]
+              "Tags" : [{"Key" : "Name", "Value" : "private_rt" }]
             }
           },         
         "RouteTableAssociationA" : {
@@ -271,10 +242,7 @@
                         "CidrIp" : { "Ref" : "SourceAccessCIDR" }
                     }
                 ],
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "bastion" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "bastion" }]
             }
         },
         "SGEC2pool" : {
@@ -302,10 +270,7 @@
                         "SourceSecurityGroupId" : { "Ref" : "SGalb" }
                     }
                 ],
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "ec2_pool" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "ec2_pool" }]
             }
         },
         "SGalb" : {
@@ -321,10 +286,7 @@
                         "CidrIp" : { "Ref" : "SourceAccessCIDR" }
                     }
                 ],
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "alb" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "alb" }]
             }
         },
         "SGefs" : {
@@ -352,10 +314,7 @@
                         "CidrIp" : "10.10.0.0/16"
                     }
                 ],
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "efs" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "efs" }]
             }
         },
         "SGdatabase" : {
@@ -377,10 +336,7 @@
                         "SourceSecurityGroupId" : { "Ref" : "SGFGpool" }
                     }
                 ],
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "mysql" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "mysql" }]
             }
         },
         "IngressFargateEFS" : {
@@ -410,10 +366,7 @@
             "Properties" : {
                 "GroupDescription" : "Allows access for Fargate instances",
                 "VpcId" : {"Ref" : "GhostVPC"},
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "fargate_pool" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "fargate_pool" }]
             }
         },
         "SGEndpoints" : {
@@ -433,10 +386,7 @@
                         "CidrIp" : "10.10.0.0/16"
                     }
                 ],
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "endpoints_sg" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "endpoints_sg" }]
             }
         },
         "DBSubnetGroup" : {
@@ -445,10 +395,7 @@
                 "DBSubnetGroupDescription" : "ghost database subnet group",
                 "DBSubnetGroupName" : "ghost",
                 "SubnetIds" : [ {"Ref" : "DBSubnetA"}, {"Ref" : "DBSubnetB"}, {"Ref" : "DBSubnetC"} ],
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "DBSubnetGroup" }
-                ]
+                "Tags" : [{"Key" : "Name", "Value" : "DBSubnetGroup" }]
             }
         },
         "EndPointSSM" : {
@@ -552,10 +499,7 @@
                         } ]
                 },
                 "RoleName" : "Ghost_Role",
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "ghost-role" }
-                    ]  
+                "Tags" : [{"Key" : "Name", "Value" : "ghost-role" }]  
             }
         },
         "RolePolicy": {
@@ -609,10 +553,7 @@
                         } ]
                 },
                 "RoleName" : "ghost_ecs",
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "ghost_ecs_role" }
-                    ]  
+                "Tags" : [{"Key" : "Name", "Value" : "ghost_ecs_role" }]  
             }
         },
         "RolePolicyECS": {
@@ -658,10 +599,7 @@
                 "Description" : "Database credentials",
                 "Name" : "dbsecret",
                 "SecretString" : {"Fn::Join": ["", ["{\"username\":\"ghost\",\"password\":\"", {"Ref" : "DBPassword"}, "\"}"]]},
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "ghost-db-secret" }
-                    ]
+                "Tags" : [{"Key" : "Name", "Value" : "ghost-db-secret" }]
             }
           },       
           "GhostDB": {
@@ -683,10 +621,7 @@
                 },
                 "StorageType" : "gp2",
                 "VPCSecurityGroups" : [{"Ref" : "SGdatabase"}],
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "ghost-db" }
-                    ] 
+                "Tags" : [{"Key" : "Name", "Value" : "ghost-db" }] 
             }
         },
         "SecretRDSInstanceAttachment": {
@@ -706,10 +641,7 @@
             "Type" : "AWS::EFS::FileSystem",
             "Properties" : {
                 "Encrypted" : "false",
-                "FileSystemTags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "ghost_content" }
-                    ]
+                "FileSystemTags" : [{"Key" : "Name", "Value" : "ghost_content" }]
               }
           },
           "MountTargetA" : {
@@ -745,10 +677,7 @@
                 "Scheme" : "internet-facing",
                 "SecurityGroups" : [ { "Ref" : "SGalb"} ],
                 "Subnets" : [ { "Ref" : "SubnetA" }, { "Ref" : "SubnetB" }, { "Ref" : "SubnetC" } ],
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "Ghost_ALB" }
-                    ],
+                "Tags" : [{"Key" : "Name", "Value" : "Ghost_ALB" }],
                 "Type" : "application"
               }
           },
@@ -761,10 +690,7 @@
                 "Name" : "ghost-ec2",
                 "Port" : 2368,
                 "Protocol" : "HTTP",
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "Ghost_ALB_ec2_target" }
-                    ],
+                "Tags" : [{"Key" : "Name", "Value" : "Ghost_ALB_ec2_target" }],
                 "TargetType" : "instance",
                 "VpcId" : { "Ref" : "GhostVPC"}
               }
@@ -778,10 +704,7 @@
                 "Name" : "ghost-fargate",
                 "Port" : 2368,
                 "Protocol" : "HTTP",
-                "Tags" : [
-                    {"Key" : "Project", "Value" : "ghost" },
-                    {"Key" : "Name", "Value" : "Ghost_ALB_Fargate_target" }
-                    ],
+                "Tags" : [{"Key" : "Name", "Value" : "Ghost_ALB_Fargate_target" }],
                 "TargetType" : "ip",
                 "VpcId" : { "Ref" : "GhostVPC"}
               }
@@ -819,8 +742,7 @@
                     "SecurityGroupIds" : [{ "Ref" : "SGEC2pool" }],
                     "TagSpecifications" : [{
                         "ResourceType" : "instance",
-                        "Tags" : [{"Key" : "Project", "Value" : "ghost" },
-                                 {"Key" : "Name", "Value" : "Ghost Instance" }]
+                        "Tags" : [{"Key" : "Name", "Value" : "Ghost Instance" }]
                       }],
                     "UserData": {
                         "Fn::Base64": {
@@ -837,21 +759,25 @@
                                 "yum install -y nodejs amazon-efs-utils jq\n",
                                 "DB_PASSWORD=$(aws secretsmanager get-secret-value --region $REGION --secret-id dbsecret |jq --raw-output '.SecretString'|jq -r .password)\n",
                                 "npm install ghost-cli@latest -g \n",                            
-                                "adduser ghost_user\n",
-                                "usermod -aG wheel ghost_user\n",
-                                "cd /home/ghost_user/\n",
-                                "sudo -u ghost_user ghost install local\n",
-                                "mkdir -p /home/ghost_user/ghost/content\n",
-                                "mount -t efs -o tls $EFS_ID:/ /home/ghost_user/ghost/content\n",
-                                "chown -R ghost_user:ghost_user ghost/\n",
-                                "IS_CONTENT_EMPTY=$(ls -A /home/ghost_user/ghost/content)\n",
-                                "if [[ -z $IS_CONTENT_EMPTY ]]; then echo 'Empty EFS. Copying content...';sudo -u ghost_user cp -R ./content/* /home/ghost_user/ghost/content;else echo 'EFS OK. Skipping'; fi\n",
+                                "adduser node\n",
+                                "usermod -aG wheel node\n",
+                                "cd /home/node/\n",
+                                "sudo -u node ghost install local\n",
+                                "mkdir -p /home/node/ghost/content\n",
+                                "mount -t efs -o tls $EFS_ID:/ /home/node/ghost/content\n",
+                                "chown -R node:node ghost/\n",
+                                "IS_CONTENT_EMPTY=$(ls -A /home/node/ghost/content)\n",
+                                "if [[ -z $IS_CONTENT_EMPTY ]]; then echo 'Empty EFS. Copying content...';sudo -u node cp -R ./content/* /home/node/ghost/content;else echo 'EFS OK. Skipping'; fi\n",
                                 "chmod -R ga+w ghost/\n",
                                 "cat << EOF > config.development.json\n",
-                                "{\n \"url\": \"http://${LB_DNS_NAME}\",\n \"server\": {\n \"port\": 2368,\n \"host\": \"0.0.0.0\"\n },\n \"database\": {\n \"client\": \"mysql\",\n \"connection\": {\n \"host\": \"${DB_URL}\",\n \"port\": 3306,\n \"user\": \"${DB_USER}\",\n \"password\": \"${DB_PASSWORD}\",\n \"database\": \"${DB_NAME}\" \n }},\n \"mail\": {\n \"transport\": \"Direct\"\n },\n \"logging\": {\n \"transports\": [\n \"file\",\n \"stdout\"\n ]\n },\n \"process\": \"local\",\n \"paths\": {\n \"contentPath\": \"/home/ghost_user/ghost/content\"\n }\n}\n",
-                                "EOF\n",                               
-                                "sudo -u ghost_user ghost stop\n",
-                                "sudo -u ghost_user ghost start\n"                               
+                                "{\n \"url\": \"http://${LB_DNS_NAME}\",\n \"server\": {\n \"port\": 2368,\n \"host\": \"0.0.0.0\"\n },\n \"database\": {\n \"client\": \"mysql\",\n \"connection\": {\n \"host\": \"${DB_URL}\",\n \"port\": 3306,\n \"user\": \"${DB_USER}\",\n \"password\": \"${DB_PASSWORD}\",\n \"database\": \"${DB_NAME}\" \n }},\n \"mail\": {\n \"transport\": \"Direct\"\n },\n \"logging\": {\n \"transports\": [\n \"file\",\n \"stdout\"\n ]\n },\n \"process\": \"local\",\n \"paths\": {\n \"contentPath\": \"/home/node/ghost/content\"\n }\n}\n",
+                                "EOF\n",
+                                "mkdir -p /var/lib/ghost/current/content/themes\n",
+                                "cd /var/lib/ghost/current/content/themes\n",
+                                "ln -s /home/node/current/content/themes/casper casper\n",
+                                "cd /home/node\n",
+                                "sudo -u node ghost stop\n",
+                                "sudo -u node ghost start\n"                               
                             ]]
                         }
                     }
@@ -892,20 +818,116 @@
                     "GroupSet": [{ "Ref" : "SGbastion" }],
                     "SubnetId": { "Ref" : "SubnetA" }
                   } ],
-                "Tags" : [{"Key" : "Project", "Value" : "ghost" },
-                            {"Key" : "Name", "Value" : "Bastion Instance" }]
+                "Tags" : [{"Key" : "Name", "Value" : "Bastion Instance" }]
               }
           },
 
-          "GhostECR" : {
-            "Type" : "AWS::ECR::Repository",
+          "GhostCluster" :{
+            "Type" : "AWS::ECS::Cluster",
+            "DependsOn" : "GhostASG",
             "Properties" : {
-                "ImageTagMutability" : "MUTABLE",
-                "RepositoryName" : "ghost",
-                "Tags" : [{"Key" : "Project", "Value" : "ghost" },
-                          {"Key" : "Name", "Value" : "GhostECR" }]
+                "CapacityProviders" : [ "FARGATE" ],
+                "ClusterName" : "ghost",
+                "ClusterSettings" :  [{
+                    "Name" : "containerInsights",
+                    "Value" : "enabled"               
+                }]
               }
-          }        
+            },
+            "GhostTaskDef" : {
+                "Type" : "AWS::ECS::TaskDefinition",
+                "Properties" : {
+                    "ContainerDefinitions" : [ {
+                        "Name": "task_def_ghost",
+                        "Image": {"Fn::Join": ["", [{"Ref" : "AccountID"}, ".dkr.ecr.us-east-1.amazonaws.com/", {"Ref" : "ECRname"}, ":5.33"]]},
+                        "Cpu": 0,
+                        "PortMappings": [
+                            {
+                                "Name": "ghost_container-2368-tcp",
+                                "ContainerPort": 2368,
+                                "HostPort": 2368,
+                                "Protocol": "tcp"
+                            }
+                        ],
+                        "Essential": true,
+                        "Environment": [
+                            {
+                                "Name": "database__connection__database",
+                                "Value": "ghost"
+                            },
+                            {
+                                "Name": "database__connection__host",
+                                "Value": { "Fn::GetAtt" : [ "GhostDB", "Endpoint.Address" ]}
+                            },
+                            {
+                                "Name": "database__connection__password",
+                                "Value": {"Ref" : "DBPassword"}
+                            },
+                            {
+                                "Name": "database__client",
+                                "Value": "mysql"
+                            },
+                            {
+                                "Name": "database__connection__user",
+                                "Value": "ghost"
+                            }
+                        ],
+                        "MountPoints": [
+                            {
+                                "SourceVolume": "ghost_volume",
+                                "ContainerPath": "/var/lib/ghost/content"
+                            }
+                        ],
+                        "LogConfiguration": {
+                            "LogDriver": "awslogs",
+                            "Options": {
+                                "awslogs-create-group": "true",
+                                "awslogs-group": "ghost-container",
+                                "awslogs-region": "us-east-1",
+                                "awslogs-stream-prefix": "ghost"
+                            }
+                        }
+                    } ],
+                    "Cpu" : "256",
+                    "ExecutionRoleArn" : { "Fn::GetAtt" : [ "IAMroleECS", "Arn" ]},
+                    "Family" : "task_def_ghost",
+                    "Memory" : "1024",
+                    "NetworkMode" : "awsvpc",
+                    "RequiresCompatibilities" : [ "FARGATE" ],
+                    "TaskRoleArn" : { "Fn::GetAtt" : [ "IAMroleECS", "Arn" ]},
+                    "Volumes" : [{
+                        "EFSVolumeConfiguration" : {
+                            "FilesystemId" : { "Fn::GetAtt" : [ "GhostEFS", "FileSystemId" ]}
+                        },
+                        "Name" : "ghost_volume"
+                      }]
+                      
+                  }
+            },
+            "GhostService" : {
+                "Type" : "AWS::ECS::Service",
+                "Properties" : {
+                    "Cluster" : {"Ref" : "GhostCluster"},
+                    "DesiredCount" : 1,
+                    "HealthCheckGracePeriodSeconds" : 30,
+                    "LaunchType" : "FARGATE",
+                    "LoadBalancers" : [ {
+                        "ContainerName" : "task_def_ghost",
+                        "ContainerPort" : 2368,
+                        "TargetGroupArn" : { "Fn::GetAtt" : [ "ALBTargetGroup2", "TargetGroupArn" ]}
+                      } ],
+                    "NetworkConfiguration" : {
+                        "AwsvpcConfiguration" : {
+                            "AssignPublicIp" : "DISABLED",
+                            "SecurityGroups" : [ {"Ref" : "SGFGpool"} ],
+                            "Subnets" : [ { "Ref" : "ECSSubnetA" }, { "Ref" : "ECSSubnetB" }, { "Ref" : "ECSSubnetC" } ]
+                          }                      
+                      },
+                    "ServiceName" : "ghost",
+                    "TaskDefinition" : {"Ref": "GhostTaskDef"}
+                  }
+              }
+       
     },
 
     "Outputs" : {
@@ -917,20 +939,13 @@
             "Description": "DNS Name of Bastion Instance",  
             "Value" : { "Fn::GetAtt" : [ "BastionInstance", "PublicDnsName" ]}
         },
-        "ECSrolearn": {
-            "Description": "IAM exec role for ECS",  
-            "Value" : { "Fn::GetAtt" : [ "IAMroleECS", "Arn" ]},
-            "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-ECSIAMarn" }}
-        },
         "DBDNS": {
             "Description": "DB DNS Name",  
-            "Value" : { "Fn::GetAtt" : [ "GhostDB", "Endpoint.Address" ]},
-            "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-DBDNS" }}
+            "Value" : { "Fn::GetAtt" : [ "GhostDB", "Endpoint.Address" ]}
         },
         "EFSID": {
             "Description": "EFS Id",  
-            "Value" : { "Fn::GetAtt" : [ "GhostEFS", "FileSystemId" ]},
-            "Export" : { "Name" : {"Fn::Sub": "${AWS::StackName}-EFSID" }}
+            "Value" : { "Fn::GetAtt" : [ "GhostEFS", "FileSystemId" ]}
         }
     }
 }
