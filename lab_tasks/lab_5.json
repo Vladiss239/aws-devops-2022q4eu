@@ -1,0 +1,1159 @@
+{
+    "AWSTemplateFormatVersion" : "2010-09-09",
+  
+    "Description" : "Creates infra for ghost app.",
+
+    "Parameters" : {
+        "AccountID" : {
+            "Type" : "String",
+            "Description" : "Account ID",
+            "Default" : "481787744868"
+        },
+        "SourceAccessCIDR" : {
+            "Type" : "String",
+            "Description" : "Allowed source IPs x.x.x.x/x",
+            "Default" : "0.0.0.0/0"
+        },
+        "DBPassword" : {
+            "Type" : "String",
+            "Description" : "Database password",
+            "Default" : "MyDBPassword123"
+        },
+        "ECRname" : {
+            "Type" : "String",
+            "Description" : "ECR name",
+            "Default" : "ghost"
+        }
+    },
+
+    "Resources" : {
+        "GhostVPC" : {
+            "Type" : "AWS::EC2::VPC",
+            "Properties" : {
+                "CidrBlock" : "10.10.0.0/16",
+                "EnableDnsHostnames" : "true",
+                "EnableDnsSupport" : "true",
+                "InstanceTenancy" : "default",
+                "Tags" : [{"Key" : "Name", "Value" : "cloudx" }]
+            }
+        },
+        "SubnetA" : {
+              "Type" : "AWS::EC2::Subnet",
+              "Properties" : {
+                "AvailabilityZone" : "us-east-1a",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.1.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [{"Key" : "Name", "Value" : "public_a" }]
+            }
+        },
+        "SubnetB" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+              "AvailabilityZone" : "us-east-1b",
+              "VpcId" : { "Ref" : "GhostVPC" },
+              "CidrBlock" : "10.10.2.0/24",
+              "MapPublicIpOnLaunch" : "true",
+              "Tags" : [{"Key" : "Name", "Value" : "public_b" }]
+            }
+        },
+        "SubnetC" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1c",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.3.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [{"Key" : "Name", "Value" : "public_c" }]
+            }
+        },
+        "DBSubnetA" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1a",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.20.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [{"Key" : "Name", "Value" : "private_db_a" }]
+            }
+        },
+        "DBSubnetB" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1b",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.21.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [{"Key" : "Name", "Value" : "private_db_b" }]
+            }
+        },
+        "DBSubnetC" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1c",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.22.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [{"Key" : "Name", "Value" : "private_db_c" }]
+            }
+        },
+        "ECSSubnetA" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1a",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.10.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [{"Key" : "Name", "Value" : "private_a" }]
+            }
+        },
+        "ECSSubnetB" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1b",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.11.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [{"Key" : "Name", "Value" : "private_b" }]
+            }
+        },
+        "ECSSubnetC" : {
+            "Type": "AWS::EC2::Subnet",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1c",
+                "VpcId" : { "Ref": "GhostVPC" },
+                "CidrBlock" : "10.10.12.0/24",
+                "MapPublicIpOnLaunch" : "true",
+                "Tags" : [{"Key" : "Name", "Value" : "private_c" }]
+            }
+        },
+        
+        "GhostIGW" : {
+          "Type": "AWS::EC2::InternetGateway",
+          "Properties" : {
+            "Tags" : [{"Key" : "Name", "Value" : "Ghost_IGW" }]
+          }
+        },
+        "AttachGateway" : {
+          "Type" : "AWS::EC2::VPCGatewayAttachment",
+          "Properties" : {
+            "VpcId" : { "Ref" : "GhostVPC" },
+            "InternetGatewayId" : { "Ref": "GhostIGW" }
+          }
+        },
+        
+        "GhostRT" : {
+          "Type" : "AWS::EC2::RouteTable",
+          "Properties" : {
+            "VpcId" : { "Ref" : "GhostVPC" },
+            "Tags" : [{"Key" : "Name", "Value" : "Ghost_RT" }]
+          }
+        },
+        "DefaultRoute" : {
+            "Type" : "AWS::EC2::Route",
+            "DependsOn" : "GhostIGW",
+            "Properties" : {
+                "RouteTableId" : { "Ref" : "GhostRT" },
+                "DestinationCidrBlock" : "0.0.0.0/0",
+                "GatewayId" : { "Ref" : "GhostIGW" }
+            }
+        },
+        "PrivateRT" : {
+            "Type" : "AWS::EC2::RouteTable",
+            "Properties" : {
+              "VpcId" : { "Ref" : "GhostVPC" },
+              "Tags" : [{"Key" : "Name", "Value" : "private_rt" }]
+            }
+          },         
+        "RouteTableAssociationA" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "SubnetA" },
+                "RouteTableId" : { "Ref" : "GhostRT" }
+            }
+        },
+        "RouteTableAssociationB" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "SubnetB" },
+                "RouteTableId" : { "Ref" : "GhostRT" }
+            }
+        },
+        "RouteTableAssociationC" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "SubnetC" },
+                "RouteTableId" : { "Ref" : "GhostRT" }
+            }
+        },
+        "PrivateRouteTableAssociationA" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "DBSubnetA" },
+                "RouteTableId" : { "Ref" : "PrivateRT" }
+            }
+        },
+        "PrivateRouteTableAssociationB" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "DBSubnetB" },
+                "RouteTableId" : { "Ref" : "PrivateRT" }
+            }
+        },
+        "PrivateRouteTableAssociationC" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "DBSubnetC" },
+                "RouteTableId" : { "Ref" : "PrivateRT" }
+            }
+        },
+        "ECSRouteTableAssociationA" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "ECSSubnetA" },
+                "RouteTableId" : { "Ref" : "PrivateRT" }
+            }
+        },
+        "ECSRouteTableAssociationB" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "ECSSubnetB" },
+                "RouteTableId" : { "Ref" : "PrivateRT" }
+            }
+        },
+        "ECSRouteTableAssociationC" : {
+            "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+            "Properties" : {
+                "SubnetId" : { "Ref" : "ECSSubnetC" },
+                "RouteTableId" : { "Ref" : "PrivateRT" }
+            }
+        },
+
+        "SGbastion" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "allows access to bastion",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "SecurityGroupIngress" : [
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 22,
+                        "ToPort" : 22,
+                        "CidrIp" : { "Ref" : "SourceAccessCIDR" }
+                    }
+                ],
+                "Tags" : [{"Key" : "Name", "Value" : "bastion" }]
+            }
+        },
+        "SGEC2pool" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "allows access to ec2 instances",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "SecurityGroupIngress" : [
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 22,
+                        "ToPort" : 22,
+                        "SourceSecurityGroupId" : { "Ref" : "SGbastion" }
+                    },
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 2049,
+                        "ToPort" : 2049,
+                        "CidrIp" : "10.10.0.0/16"
+                    },
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 2368,
+                        "ToPort" : 2368,
+                        "SourceSecurityGroupId" : { "Ref" : "SGalb" }
+                    }
+                ],
+                "Tags" : [{"Key" : "Name", "Value" : "ec2_pool" }]
+            }
+        },
+        "SGalb" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "allows access to alb",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "SecurityGroupIngress" : [
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 80,
+                        "ToPort" : 80,
+                        "CidrIp" : { "Ref" : "SourceAccessCIDR" }
+                    }
+                ],
+                "Tags" : [{"Key" : "Name", "Value" : "alb" }]
+            }
+        },
+        "SGefs" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "defines access to efs mount points",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "SecurityGroupIngress" : [
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 2049,
+                        "ToPort" : 2049,
+                        "SourceSecurityGroupId" : { "Ref" : "SGEC2pool" }
+                    },
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 2049,
+                        "ToPort" : 2049,
+                        "SourceSecurityGroupId" : { "Ref" : "SGFGpool" }
+                    }
+                ],
+                "SecurityGroupEgress" : [
+                    {
+                        "IpProtocol" : "-1",
+                        "CidrIp" : "10.10.0.0/16"
+                    }
+                ],
+                "Tags" : [{"Key" : "Name", "Value" : "efs" }]
+            }
+        },
+        "SGdatabase" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "defines access to ghost db",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "SecurityGroupIngress" : [
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 3306,
+                        "ToPort" : 3306,
+                        "SourceSecurityGroupId" : { "Ref" : "SGEC2pool" }
+                    },
+                    {
+                        "IpProtocol" : "tcp",
+                        "FromPort" : 3306,
+                        "ToPort" : 3306,
+                        "SourceSecurityGroupId" : { "Ref" : "SGFGpool" }
+                    }
+                ],
+                "Tags" : [{"Key" : "Name", "Value" : "mysql" }]
+            }
+        },
+        "IngressFargateEFS" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "Description" : "allow NFS",
+                "IpProtocol" : "tcp",
+                "FromPort" : 2049,
+                "ToPort" : 2049,
+                "SourceSecurityGroupId" : { "Ref" : "SGefs" },
+                "GroupId" : {"Ref" : "SGFGpool"}
+              }
+        },
+        "IngressFargateHTTP" : {
+            "Type" : "AWS::EC2::SecurityGroupIngress",
+            "Properties" : {
+                "Description" : "allow Ghost port",
+                "IpProtocol" : "tcp",
+                "FromPort" : 2368,
+                "ToPort" : 2368,
+                "SourceSecurityGroupId" : { "Ref" : "SGalb" },
+                "GroupId" : {"Ref" : "SGFGpool"}
+              }
+        },
+        "SGFGpool" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "Allows access for Fargate instances",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "Tags" : [{"Key" : "Name", "Value" : "fargate_pool" }]
+            }
+        },
+        "SGEndpoints" : {
+            "Type" : "AWS::EC2::SecurityGroup",
+            "Properties" : {
+                "GroupDescription" : "SG for VPC endpoints",
+                "VpcId" : {"Ref" : "GhostVPC"},
+                "SecurityGroupIngress" : [
+                    {
+                        "IpProtocol" : "-1",
+                        "CidrIp" : "10.10.0.0/16"
+                    }
+                ],
+                "SecurityGroupEgress" : [
+                    {
+                        "IpProtocol" : "-1",
+                        "CidrIp" : "10.10.0.0/16"
+                    }
+                ],
+                "Tags" : [{"Key" : "Name", "Value" : "endpoints_sg" }]
+            }
+        },
+        "DBSubnetGroup" : {
+            "Type" : "AWS::RDS::DBSubnetGroup",
+            "Properties" : {
+                "DBSubnetGroupDescription" : "ghost database subnet group",
+                "DBSubnetGroupName" : "ghost",
+                "SubnetIds" : [ {"Ref" : "DBSubnetA"}, {"Ref" : "DBSubnetB"}, {"Ref" : "DBSubnetC"} ],
+                "Tags" : [{"Key" : "Name", "Value" : "DBSubnetGroup" }]
+            }
+        },
+        "EndPointSSM" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.ssm",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+              }
+        },
+        "EndPointSSMmessages" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.ssmmessages",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+              }
+        },
+        "EndPointECRAPI" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.ecr.api",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+                }
+        },
+        "EndPointECRDKR" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.ecr.dkr",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+                }
+        },
+        "EndPointEFS" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.elasticfilesystem",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+                }
+        },
+        "EndPointCloudWatch" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.monitoring",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+                }
+        },
+        "EndPointCloudWatchLogs" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "PrivateDnsEnabled" : "true",
+                "SecurityGroupIds" : [ {"Ref" : "SGEndpoints"} ],
+                "ServiceName" : "com.amazonaws.us-east-1.logs",
+                "SubnetIds" : [ {"Ref" : "ECSSubnetA"}, {"Ref" : "ECSSubnetB"}, {"Ref" : "ECSSubnetC"} ],
+                "VpcEndpointType" : "Interface",
+                "VpcId" : {"Ref" : "GhostVPC"}
+                }
+        },
+        "EndPointS3" : {
+            "Type" : "AWS::EC2::VPCEndpoint",
+            "Properties" : {
+                "ServiceName" : "com.amazonaws.us-east-1.s3",
+                "RouteTableIds" : [ {"Ref" : "PrivateRT"} ],
+                "VpcEndpointType" : "Gateway",
+                "VpcId" : {"Ref" : "GhostVPC"}
+                }
+        },
+      
+        "IAMrole": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version" : "2012-10-17",
+                    "Statement": [ {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": [ "ec2.amazonaws.com" ]
+                        },
+                        "Action": [ "sts:AssumeRole" ]
+                        } ]
+                },
+                "RoleName" : "Ghost_Role",
+                "Tags" : [{"Key" : "Name", "Value" : "ghost-role" }]  
+            }
+        },
+        "RolePolicy": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "ghost_policy",
+                "PolicyDocument": {
+                    "Version" : "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ec2:Describe*",
+                                "elasticfilesystem:DescribeFileSystems",
+                                "elasticfilesystem:ClientMount",
+                                "elasticfilesystem:ClientWrite",
+                                "rds:DescribeDBInstances",
+                                "ssm:GetParameter*",
+                                "secretsmanager:GetSecretValue",
+                                "kms:Decrypt"
+                            ],
+                            "Resource": "*"
+                        }
+                    ]
+                },
+                "Roles": [ {
+                "Ref": "IAMrole"
+                } ]
+            } 
+        },
+        "EC2InstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Roles": [ {
+                "Ref": "IAMrole"
+                } ]
+            }
+        },
+
+        "IAMroleECS": {
+            "Type": "AWS::IAM::Role",
+            "Properties": {
+                "AssumeRolePolicyDocument": {
+                    "Version" : "2012-10-17",
+                    "Statement": [ {
+                        "Effect": "Allow",
+                        "Principal": {
+                            "Service": [ "ecs-tasks.amazonaws.com" ]
+                        },
+                        "Action": [ "sts:AssumeRole" ]
+                        } ]
+                },
+                "RoleName" : "ghost_ecs",
+                "Tags" : [{"Key" : "Name", "Value" : "ghost_ecs_role" }]  
+            }
+        },
+        "RolePolicyECS": {
+            "Type": "AWS::IAM::Policy",
+            "Properties": {
+                "PolicyName": "ghost_ecs_policy",
+                "PolicyDocument": {
+                    "Version" : "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Action": [
+                                "ecr:GetAuthorizationToken",
+                                "ecr:BatchCheckLayerAvailability",
+                                "ecr:GetDownloadUrlForLayer",
+                                "ecr:BatchGetImage",
+                                "elasticfilesystem:DescribeFileSystems",
+                                "elasticfilesystem:ClientMount",
+                                "elasticfilesystem:ClientWrite",
+                                "logs:*"
+                            ],
+                            "Resource": "*"
+                        }
+                    ]
+                },
+                "Roles": [ {
+                "Ref": "IAMroleECS"
+                } ]
+            } 
+        },
+        "ECSInstanceProfile": {
+            "Type": "AWS::IAM::InstanceProfile",
+            "Properties": {
+                "Roles": [ {
+                "Ref": "IAMroleECS"
+                } ]
+            }
+        },
+
+        "DBSecret" : {
+            "Type" : "AWS::SecretsManager::Secret",
+            "Properties" : {
+                "Description" : "Database credentials",
+                "Name" : "dbsecret",
+                "SecretString" : {"Fn::Join": ["", ["{\"username\":\"ghost\",\"password\":\"", {"Ref" : "DBPassword"}, "\"}"]]},
+                "Tags" : [{"Key" : "Name", "Value" : "ghost-db-secret" }]
+            }
+          },       
+          "GhostDB": {
+            "Type": "AWS::RDS::DBInstance",
+            "DeletionPolicy": "Delete",
+            "Properties": {
+                "AllocatedStorage": 20,
+                "DBInstanceIdentifier": "GhostDBInstance",
+                "DBName": "ghost",
+                "DBInstanceClass": "db.t2.micro",
+                "DBSubnetGroupName": {"Ref" : "DBSubnetGroup"},
+                "Engine": "mysql",
+                "EngineVersion": "8.0.28",
+                "MasterUsername": {
+                    "Fn::Sub": "{{resolve:secretsmanager:${DBSecret}::username}}"
+                },
+                "MasterUserPassword": {
+                    "Fn::Sub": "{{resolve:secretsmanager:${DBSecret}::password}}"
+                },
+                "StorageType" : "gp2",
+                "VPCSecurityGroups" : [{"Ref" : "SGdatabase"}],
+                "Tags" : [{"Key" : "Name", "Value" : "ghost-db" }] 
+            }
+        },
+        "SecretRDSInstanceAttachment": {
+            "Type": "AWS::SecretsManager::SecretTargetAttachment",
+            "Properties": {
+                "SecretId": {
+                    "Ref": "DBSecret"
+                },
+                "TargetId": {
+                    "Ref": "GhostDB"
+                },
+                "TargetType": "AWS::RDS::DBInstance"
+            }
+        },
+        
+        "GhostEFS" : {
+            "Type" : "AWS::EFS::FileSystem",
+            "Properties" : {
+                "Encrypted" : "false",
+                "FileSystemTags" : [{"Key" : "Name", "Value" : "ghost_content" }]
+              }
+          },
+          "MountTargetA" : {
+            "Type" : "AWS::EFS::MountTarget",
+            "Properties" : {
+                "FileSystemId" : { "Ref" : "GhostEFS"},
+                "SecurityGroups" : [ { "Ref" : "SGefs" }],
+                "SubnetId" : { "Ref" : "SubnetA"}
+              }
+          },
+          "MountTargetB" : {
+            "Type" : "AWS::EFS::MountTarget",
+            "Properties" : {
+                "FileSystemId" : { "Ref" : "GhostEFS"},
+                "SecurityGroups" : [ { "Ref" : "SGefs" }],
+                "SubnetId" : { "Ref" : "SubnetB"}
+              }
+          },
+          "MountTargetC" : {
+            "Type" : "AWS::EFS::MountTarget",
+            "Properties" : {
+                "FileSystemId" : { "Ref" : "GhostEFS"},
+                "SecurityGroups" : [ { "Ref" : "SGefs" }],
+                "SubnetId" : { "Ref" : "SubnetC"}
+              }
+          },
+
+          "GhostALB" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::LoadBalancer",
+            "DependsOn" : "GhostDB",
+            "Properties" : {
+                "Name" : "ghost-alb",
+                "Scheme" : "internet-facing",
+                "SecurityGroups" : [ { "Ref" : "SGalb"} ],
+                "Subnets" : [ { "Ref" : "SubnetA" }, { "Ref" : "SubnetB" }, { "Ref" : "SubnetC" } ],
+                "Tags" : [{"Key" : "Name", "Value" : "Ghost_ALB" }],
+                "Type" : "application"
+              }
+          },
+          "ALBTargetGroup" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties" : {
+                "HealthCheckEnabled" : "true",
+                "HealthCheckIntervalSeconds" : 30,
+                "HealthCheckProtocol" : "HTTP",
+                "Name" : "ghost-ec2",
+                "Port" : 2368,
+                "Protocol" : "HTTP",
+                "Tags" : [{"Key" : "Name", "Value" : "Ghost_ALB_ec2_target" }],
+                "TargetType" : "instance",
+                "VpcId" : { "Ref" : "GhostVPC"}
+              }
+          },
+          "ALBTargetGroup2" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::TargetGroup",
+            "Properties" : {
+                "HealthCheckEnabled" : "true",
+                "HealthCheckIntervalSeconds" : 30,
+                "HealthCheckProtocol" : "HTTP",
+                "Name" : "ghost-fargate",
+                "Port" : 2368,
+                "Protocol" : "HTTP",
+                "Tags" : [{"Key" : "Name", "Value" : "Ghost_ALB_Fargate_target" }],
+                "TargetType" : "ip",
+                "VpcId" : { "Ref" : "GhostVPC"}
+              }
+          },
+          "ALBListener" : {
+            "Type" : "AWS::ElasticLoadBalancingV2::Listener",
+            "DependsOn" : "GhostALB",
+            "Properties" : {
+                "DefaultActions" : [ {
+                    "Type": "forward",
+                    "ForwardConfig": { 
+                        "TargetGroups" : [{"TargetGroupArn": { "Ref" : "ALBTargetGroup" }, "Weight" : 50},
+                                        {"TargetGroupArn": { "Ref" : "ALBTargetGroup2" }, "Weight" : 50}                
+                        ]
+                    }
+                }],
+                "LoadBalancerArn" : { "Ref" : "GhostALB"},
+                "Port" : "80",
+                "Protocol" : "HTTP"
+              }
+          },
+
+          "GhostTemplate" : {
+            "Type" : "AWS::EC2::LaunchTemplate",
+            "DependsOn" : "GhostALB",
+            "Properties" : {
+                "LaunchTemplateName" : "GhostProdTemplate",
+                "LaunchTemplateData" : {
+                    "IamInstanceProfile": {
+                        "Arn":{"Fn::GetAtt": ["EC2InstanceProfile", "Arn"]}
+                        },
+                    "ImageId" : "ami-0b5eea76982371e91",
+                    "InstanceType": "t2.micro",
+                    "KeyName": "ghost-prod",
+                    "SecurityGroupIds" : [{ "Ref" : "SGEC2pool" }],
+                    "TagSpecifications" : [{
+                        "ResourceType" : "instance",
+                        "Tags" : [{"Key" : "Name", "Value" : "Ghost Instance" }]
+                      }],
+                    "UserData": {
+                        "Fn::Base64": {
+                            "Fn::Join": ["", [
+                                "#!/bin/bash -xe\n",
+                                "exec > >(tee /var/log/cloud-init-output.log|logger -t user-data -s 2>/dev/console) 2>&1\n",
+                                "LB_DNS_NAME='", { "Fn::GetAtt" : [ "GhostALB", "DNSName" ]}, "'\n",
+                                "REGION=$(/usr/bin/curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone | sed 's/[a-z]$//')\n",
+                                "EFS_ID=$(aws efs describe-file-systems --query 'FileSystems[?Name==`ghost_content`].FileSystemId' --region $REGION --output text)\n",
+                                "DB_URL=$(aws rds describe-db-instances --region $REGION --query 'DBInstances[*].[Endpoint.Address]' --output text)\n",
+                                "DB_NAME='ghost'\n",
+                                "DB_USER='ghost'\n",
+                                "curl -sL https://rpm.nodesource.com/setup_14.x | sudo bash -\n",
+                                "yum install -y nodejs amazon-efs-utils jq\n",
+                                "DB_PASSWORD=$(aws secretsmanager get-secret-value --region $REGION --secret-id dbsecret |jq --raw-output '.SecretString'|jq -r .password)\n",
+                                "npm install ghost-cli@latest -g \n",                            
+                                "adduser node\n",
+                                "usermod -aG wheel node\n",
+                                "cd /home/node/\n",
+                                "sudo -u node ghost install local\n",
+                                "mkdir -p /home/node/ghost/content\n",
+                                "mount -t efs -o tls $EFS_ID:/ /home/node/ghost/content\n",
+                                "chown -R node:node ghost/\n",
+                                "IS_CONTENT_EMPTY=$(ls -A /home/node/ghost/content)\n",
+                                "if [[ -z $IS_CONTENT_EMPTY ]]; then echo 'Empty EFS. Copying content...';sudo -u node cp -R ./content/* /home/node/ghost/content;else echo 'EFS OK. Skipping'; fi\n",
+                                "chmod -R ga+w ghost/\n",
+                                "cat << EOF > config.development.json\n",
+                                "{\n \"url\": \"http://${LB_DNS_NAME}\",\n \"server\": {\n \"port\": 2368,\n \"host\": \"0.0.0.0\"\n },\n \"database\": {\n \"client\": \"mysql\",\n \"connection\": {\n \"host\": \"${DB_URL}\",\n \"port\": 3306,\n \"user\": \"${DB_USER}\",\n \"password\": \"${DB_PASSWORD}\",\n \"database\": \"${DB_NAME}\" \n }},\n \"mail\": {\n \"transport\": \"Direct\"\n },\n \"logging\": {\n \"transports\": [\n \"file\",\n \"stdout\"\n ]\n },\n \"process\": \"local\",\n \"paths\": {\n \"contentPath\": \"/home/node/ghost/content\"\n }\n}\n",
+                                "EOF\n",
+                                "mkdir -p /var/lib/ghost/current/content/themes\n",
+                                "cd /var/lib/ghost/current/content/themes\n",
+                                "ln -s /home/node/current/content/themes/casper casper\n",
+                                "cd /home/node\n",
+                                "sudo -u node ghost stop\n",
+                                "sudo -u node ghost start\n"                               
+                            ]]
+                        }
+                    }
+                }
+            }
+          },
+
+          "GhostASG" : {
+            "Type" : "AWS::AutoScaling::AutoScalingGroup",
+            "Properties" : {
+                "AutoScalingGroupName" : "ghost_ec2_pool",
+                "DefaultInstanceWarmup" : 20,
+                "DesiredCapacity" : "2",
+                "HealthCheckGracePeriod" : 10,
+                "LaunchTemplate" : {
+                    "LaunchTemplateId" : { "Ref" : "GhostTemplate"},
+                    "Version" : { "Fn::GetAtt" : [ "GhostTemplate", "LatestVersionNumber"] }
+                  },
+                "MaxSize" : "2",
+                "MinSize" : "0",
+                "TargetGroupARNs" : [ {"Fn::GetAtt" : [ "ALBTargetGroup", "TargetGroupArn" ]} ],
+                "VPCZoneIdentifier" : [ { "Ref" : "SubnetA"}, { "Ref" : "SubnetB"}, { "Ref" : "SubnetC"} ]
+              }
+          },
+
+          "BastionInstance" : {
+            "Type" : "AWS::EC2::Instance",
+            "DependsOn" : "GhostASG",
+            "Properties" : {
+                "AvailabilityZone" : "us-east-1a",
+                "IamInstanceProfile" : {"Ref" : "EC2InstanceProfile"},
+                "ImageId" : "ami-0b5eea76982371e91",
+                "InstanceType": "t2.micro",
+                "KeyName": "ghost-prod",
+                "NetworkInterfaces": [ {
+                    "AssociatePublicIpAddress": "true",
+                    "DeviceIndex": "0",
+                    "GroupSet": [{ "Ref" : "SGbastion" }],
+                    "SubnetId": { "Ref" : "SubnetA" }
+                  } ],
+                "Tags" : [{"Key" : "Name", "Value" : "Bastion Instance" }]
+              }
+          },
+
+          "GhostCluster" :{
+            "Type" : "AWS::ECS::Cluster",
+            "DependsOn" : "GhostASG",
+            "Properties" : {
+                "CapacityProviders" : [ "FARGATE" ],
+                "ClusterName" : "ghost",
+                "ClusterSettings" :  [{
+                    "Name" : "containerInsights",
+                    "Value" : "enabled"               
+                }]
+              }
+            },
+            "GhostTaskDef" : {
+                "Type" : "AWS::ECS::TaskDefinition",
+                "Properties" : {
+                    "ContainerDefinitions" : [ {
+                        "Name": "task_def_ghost",
+                        "Image": {"Fn::Join": ["", [{"Ref" : "AccountID"}, ".dkr.ecr.us-east-1.amazonaws.com/", {"Ref" : "ECRname"}, ":5.33"]]},
+                        "Cpu": 0,
+                        "PortMappings": [
+                            {
+                                "Name": "ghost_container-2368-tcp",
+                                "ContainerPort": 2368,
+                                "HostPort": 2368,
+                                "Protocol": "tcp"
+                            }
+                        ],
+                        "Essential": true,
+                        "Environment": [
+                            {
+                                "Name": "database__connection__database",
+                                "Value": "ghost"
+                            },
+                            {
+                                "Name": "database__connection__host",
+                                "Value": { "Fn::GetAtt" : [ "GhostDB", "Endpoint.Address" ]}
+                            },
+                            {
+                                "Name": "database__connection__password",
+                                "Value": {"Ref" : "DBPassword"}
+                            },
+                            {
+                                "Name": "database__client",
+                                "Value": "mysql"
+                            },
+                            {
+                                "Name": "database__connection__user",
+                                "Value": "ghost"
+                            }
+                        ],
+                        "MountPoints": [
+                            {
+                                "SourceVolume": "ghost_volume",
+                                "ContainerPath": "/var/lib/ghost/content"
+                            }
+                        ],
+                        "LogConfiguration": {
+                            "LogDriver": "awslogs",
+                            "Options": {
+                                "awslogs-create-group": "true",
+                                "awslogs-group": "ghost-container",
+                                "awslogs-region": "us-east-1",
+                                "awslogs-stream-prefix": "ghost"
+                            }
+                        }
+                    } ],
+                    "Cpu" : "256",
+                    "ExecutionRoleArn" : { "Fn::GetAtt" : [ "IAMroleECS", "Arn" ]},
+                    "Family" : "task_def_ghost",
+                    "Memory" : "1024",
+                    "NetworkMode" : "awsvpc",
+                    "RequiresCompatibilities" : [ "FARGATE" ],
+                    "TaskRoleArn" : { "Fn::GetAtt" : [ "IAMroleECS", "Arn" ]},
+                    "Volumes" : [{
+                        "EFSVolumeConfiguration" : {
+                            "FilesystemId" : { "Fn::GetAtt" : [ "GhostEFS", "FileSystemId" ]}
+                        },
+                        "Name" : "ghost_volume"
+                      }]
+                      
+                  }
+            },
+            "GhostService" : {
+                "Type" : "AWS::ECS::Service",
+                "Properties" : {
+                    "Cluster" : {"Ref" : "GhostCluster"},
+                    "DesiredCount" : 1,
+                    "HealthCheckGracePeriodSeconds" : 30,
+                    "LaunchType" : "FARGATE",
+                    "LoadBalancers" : [ {
+                        "ContainerName" : "task_def_ghost",
+                        "ContainerPort" : 2368,
+                        "TargetGroupArn" : { "Fn::GetAtt" : [ "ALBTargetGroup2", "TargetGroupArn" ]}
+                      } ],
+                    "NetworkConfiguration" : {
+                        "AwsvpcConfiguration" : {
+                            "AssignPublicIp" : "DISABLED",
+                            "SecurityGroups" : [ {"Ref" : "SGFGpool"} ],
+                            "Subnets" : [ { "Ref" : "ECSSubnetA" }, { "Ref" : "ECSSubnetB" }, { "Ref" : "ECSSubnetC" } ]
+                          }                      
+                      },
+                    "ServiceName" : "ghost",
+                    "TaskDefinition" : {"Ref": "GhostTaskDef"}
+                  }
+              },
+              
+              "TheDashboard" : {
+                "Type" : "AWS::CloudWatch::Dashboard",
+                "Properties" : {
+                    "DashboardBody" : "{
+                        \"widgets\": [
+                           {
+                              \"type\":\"metric\",
+                              \"width\": 6,
+                              \"height\": 6,
+                              \"properties\": {
+                                    \"metrics\": [
+                                        [
+                                            {
+                                            \"expression\": \"SELECT AVG(CPUUtilization) FROM SCHEMA(\\\"AWS/EC2\\\", InstanceId) GROUP BY InstanceId\",
+                                            \"id\": \"e1\"
+                                            }
+                                        ]
+                                    ],
+                                    \"period\":300,
+                                    \"stat\":\"Average\",
+                                    \"region\":\"us-east-1\",
+                                    \"title\":\"Ghost EC2 CPU utilization\",
+                                    \"yAxis\": {
+                                        \"left\": {
+                                            \"showUnits\": false,
+                                            \"min\": 0,
+                                            \"max\": 100,
+                                            \"label\": \"%\"
+                                        }
+                                    }
+                                }
+                           },
+                           {
+                              \"type\":\"metric\",
+                              \"width\": 6,
+                              \"height\": 6,
+                              \"properties\": {
+                                   \"metrics\": [
+                                        [
+                                            {
+                                                \"expression\": \"SELECT AVG(CPUUtilization) FROM SCHEMA(\\\"AWS/ECS\\\", ClusterName,ServiceName)\",
+                                                \"id\": \"e2\",
+                                                \"label\": \"ECS CPU Utilization\"
+                                            }
+                                        ]
+                                    ],
+                                    \"period\": 300,
+                                    \"region\": \"us-east-1\",
+                                    \"title\": \"Ghost ECS CPU utilization\",
+                                    \"yAxis\": {
+                                        \"left\": {
+                                            \"showUnits\": false,
+                                            \"min\": 0,
+                                            \"max\": 100,
+                                            \"label\": \"%\"
+                                        }
+                                    }
+                                } 
+                            },
+                            {
+                                \"type\": \"metric\",
+                                \"width\": 6,
+                                \"height\": 6,
+                                \"properties\": {
+                                    \"metrics\": [
+                                        [
+                                        {
+                                            \"expression\": \"SELECT AVG(RunningTaskCount) FROM SCHEMA(\\\"ECS/ContainerInsights\\\", ClusterName, ServiceName) GROUP BY ClusterName, ServiceName ORDER BY AVG() DESC\",
+                                            \"id\": \"e3\",
+                                            \"label\": \"Task count\"
+                                        }
+                                        ]
+                                    ],
+                                    \"period\": 300,
+                                    \"region\": \"us-east-1\",
+                                    \"stat\": \"Average\",
+                                    \"title\": \"ECS Task Count\",
+                                    \"yAxis\": {
+                                        \"left\": {
+                                            \"showUnits\": false,
+                                            \"min\": 0,
+                                            \"label\": \"#\"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                \"type\": \"metric\",
+                                \"width\": 6,
+                                \"height\": 6,
+                                \"properties\": {
+                                    \"metrics\": [
+                                        [
+                                            {
+                                                \"expression\": \"SELECT SUM(ClientConnections) FROM \\\"AWS/EFS\\\"\",
+                                                \"label\": \"Client Connections\",
+                                                \"id\": \"e4\"
+                                            }
+                                        ]
+                                    ],
+                                    \"period\": 300,
+                                    \"region\": \"us-east-1\",
+                                    \"stat\": \"Sum\",
+                                    \"title\": \"EFS Client connections\",
+                                    \"yAxis\": {
+                                        \"left\": {
+                                            \"showUnits\": false,
+                                            \"min\": 0,
+                                            \"label\": \"#\"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                \"type\": \"metric\",
+                                \"width\": 6,
+                                \"height\": 6,
+                                \"properties\": {
+                                    \"metrics\": [
+                                        [ { \"expression\": \"SELECT SUM(StorageBytes) FROM SCHEMA(\\\"AWS/EFS\\\", FileSystemId,StorageClass) WHERE StorageClass = 'Total'\", \"id\": \"q1\", \"visible\": false } ],
+                                        [ { \"expression\": \"q1/1048576\", \"label\": \"Total megabytes\", \"id\": \"e5\" } ]
+                                    ],
+                                    \"period\": 300,
+                                    \"region\": \"us-east-1\",
+                                    \"stat\": \"Sum\",
+                                    \"title\": \"EFS Storage MBs\",
+                                    \"yAxis\": {
+                                        \"left\": {
+                                            \"showUnits\": false,
+                                            \"min\": 0,
+                                            \"label\": \"MB\"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                \"type\": \"metric\",
+                                \"width\": 6,
+                                \"height\": 6,
+                                \"properties\": {
+                                    \"metrics\": [
+                                        [ { \"expression\": \"SELECT SUM(DatabaseConnections) FROM SCHEMA(\\\"AWS/RDS\\\")\", \"label\": \"Number of DB connections\", \"id\": \"q3\" } ]
+                                    ],
+                                    \"period\": 300,
+                                    \"region\": \"us-east-1\",
+                                    \"stat\": \"Sum\",
+                                    \"title\": \"Number of database connections\",
+                                    \"yAxis\": {
+                                        \"left\": {
+                                            \"showUnits\": false,
+                                            \"min\": 0,
+                                            \"label\": \"#\"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                \"type\": \"metric\",
+                                \"width\": 6,
+                                \"height\": 6,
+                                \"properties\": {
+                                    \"metrics\": [
+                                        [ { \"expression\": \"SELECT AVG(CPUUtilization) FROM SCHEMA(\\\"AWS/RDS\\\")\", \"label\": \"DB CPU utilization\", \"id\": \"q6\" } ]
+                                    ],
+                                    \"period\": 300,
+                                    \"region\": \"us-east-1\",
+                                    \"stat\": \"Sum\",
+                                    \"title\": \"Database CPU utilization\",
+                                    \"yAxis\": {
+                                        \"left\": {
+                                            \"showUnits\": false,
+                                            \"min\": 0,
+                                            \"max\": 100,
+                                            \"label\": \"%\"
+                                        }
+                                    }
+                                }
+                            },
+                            {
+                                \"type\": \"metric\",
+                                \"width\": 6,
+                                \"height\": 6,
+                                \"properties\": {
+                                    \"metrics\": [
+                                        [ \"AWS/RDS\", \"WriteIOPS\" ],
+                                        [ \".\", \"ReadIOPS\" ]
+                                    ],
+                                    \"period\": 300,
+                                    \"region\": \"us-east-1\",
+                                    \"stat\": \"Sum\",
+                                    \"title\": \"Database IOPS\",
+                                    \"yAxis\": {
+                                        \"left\": {
+                                            \"showUnits\": false,
+                                            \"min\": 0,
+                                            \"label\": \"IOPS\"
+                                        }
+                                    }
+                                }
+                            }
+                            
+                        ]
+                    }",
+                    "DashboardName" : "ghost_dashboard"
+              }
+            }
+                
+    },
+
+    "Outputs" : {
+        "LBDNS" : {
+            "Description": "DNS Name of the load balancer",  
+            "Value" : { "Fn::GetAtt" : [ "GhostALB", "DNSName" ]}
+        },
+        "BastionDNS" : {
+            "Description": "DNS Name of Bastion Instance",  
+            "Value" : { "Fn::GetAtt" : [ "BastionInstance", "PublicDnsName" ]}
+        },
+        "DBDNS": {
+            "Description": "DB DNS Name",  
+            "Value" : { "Fn::GetAtt" : [ "GhostDB", "Endpoint.Address" ]}
+        },
+        "EFSID": {
+            "Description": "EFS Id",  
+            "Value" : { "Fn::GetAtt" : [ "GhostEFS", "FileSystemId" ]}
+        }
+    }
+}
+  
