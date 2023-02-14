@@ -790,7 +790,7 @@
             "Properties" : {
                 "AutoScalingGroupName" : "ghost_ec2_pool",
                 "DefaultInstanceWarmup" : 20,
-                "DesiredCapacity" : "2",
+                "DesiredCapacity" : "1",
                 "HealthCheckGracePeriod" : 10,
                 "LaunchTemplate" : {
                     "LaunchTemplateId" : { "Ref" : "GhostTemplate"},
