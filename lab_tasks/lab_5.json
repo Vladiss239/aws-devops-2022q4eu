@@ -796,7 +796,7 @@
                     "LaunchTemplateId" : { "Ref" : "GhostTemplate"},
                     "Version" : { "Fn::GetAtt" : [ "GhostTemplate", "LatestVersionNumber"] }
                   },
-                "MaxSize" : "2",
+                "MaxSize" : "1",
                 "MinSize" : "0",
                 "TargetGroupARNs" : [ {"Fn::GetAtt" : [ "ALBTargetGroup", "TargetGroupArn" ]} ],
                 "VPCZoneIdentifier" : [ { "Ref" : "SubnetA"}, { "Ref" : "SubnetB"}, { "Ref" : "SubnetC"} ]
